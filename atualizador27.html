@@ -2992,12 +2992,18 @@ function saveAll() {
         
         .pdf-group {
           margin-bottom: 20px;
-          page-break-before: always;
+          page-break-before: auto;
+          page-break-inside: avoid;
         }
         
         /* Regra importante: não quebrar página antes do primeiro grupo */
         .pdf-group:first-child {
           page-break-before: auto;
+        }
+        
+        .pdf-group-header {
+          page-break-after: avoid;
+          page-break-inside: avoid;
         }
         
         .pdf-goal {
@@ -3374,23 +3380,6 @@ function saveAll() {
         showNotification('Arquivo HTML salvo com sucesso! (Ctrl+S)', 'success');
       }
     });
-
-    // Backup automático a cada 5 minutos se houver alterações não salvas
-    setInterval(() => {
-      if (unsavedChanges && parsedDoc) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const html = parsedDoc.documentElement.outerHTML;
-        const blob = new Blob([html], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `backup_delta_metas_${timestamp}.html`;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showNotification('Backup automático realizado!', 'info', 2000);
-      }
-    }, 300000);
 
     switchView('upload');
     showNotification('Atualizador Delta Metas Unificado carregado!', 'info', 2000);
