@@ -109,6 +109,60 @@
       outline: none;
     }
     
+    /* Link management styles */
+    .meta-link-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 5px;
+      width: 170px;
+      flex: 0 0 170px;
+    }
+
+    .meta-link {
+      color: #2c3e50;
+      text-decoration: none;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.75rem;
+    }
+
+    .meta-link:hover {
+      text-decoration: underline;
+    }
+
+    .edit-link-btn, .delete-link-btn, .add-link-btn {
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      background: #3498db;
+      border: none;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+      box-shadow: none;
+      margin: 0;
+    }
+
+    .edit-link-btn:hover, .delete-link-btn:hover, .add-link-btn:hover {
+      transform: none;
+      opacity: 0.8;
+    }
+
+    .delete-link-btn {
+      background: #e74c3c;
+    }
+
+    .add-link-btn {
+      background: #27ae60;
+      width: 100%;
+    }
+    
     .passo {
       width: 170px;
       flex: 0 0 170px;
@@ -881,9 +935,29 @@
         <label for="new-meta-comment">Comentário (opcional):</label>
         <textarea id="new-meta-comment" style="width: 100%; padding: 8px; margin-top: 5px; height: 60px; border-radius: 4px; border: 1px solid #ddd; color: #e74c3c;"></textarea>
       </div>
+      <div style="margin-bottom: 15px;">
+        <label for="new-meta-link">Link (opcional):</label>
+        <input type="url" id="new-meta-link" placeholder="https://exemplo.com" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ddd;">
+      </div>
       <div class="modal-footer">
         <button id="save-meta-btn" class="modal-btn save-btn">Salvar</button>
         <button id="cancel-meta-btn" class="modal-btn cancel-btn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de link -->
+  <div id="link-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="close-link-modal">&times;</span>
+      <h3 id="link-modal-title">Adicionar Link</h3>
+      <div style="margin-bottom: 15px;">
+        <label for="link-url-input">URL:</label>
+        <input type="url" id="link-url-input" placeholder="https://exemplo.com" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ddd;">
+      </div>
+      <div class="modal-footer">
+        <button id="save-link-btn" class="modal-btn save-btn">Salvar</button>
+        <button id="cancel-link-btn" class="modal-btn cancel-btn">Cancelar</button>
       </div>
     </div>
   </div>
@@ -1163,6 +1237,11 @@
         }
       );
     }
+    
+    // Helper function for URL validation
+    function isValidExternalUrl(url) {
+      return url && (url.startsWith('http://') || url.startsWith('https://'));
+    }
 
     function mapOriginalActivities() {
       originalActivities.clear();
@@ -1237,6 +1316,20 @@
             }
           }
           
+          // Extract external link information
+          const hasInternalNavigation = button.getAttribute('onclick')?.includes('mostrarSubTela');
+          let externalLink = null;
+          
+          if (!hasInternalNavigation) {
+            const linkElement = button.querySelector('a[href]');
+            if (linkElement) {
+              const href = linkElement.getAttribute('href');
+              if (isValidExternalUrl(href)) {
+                externalLink = href;
+              }
+            }
+          }
+          
           originalActivities.set(meta, {
             element: container,
             button: button,
@@ -1246,7 +1339,9 @@
             comment: comment,
             postIt: postIt || null,
             color: groupColor,
-            isCurrent: true // Por padrão, considerar que todos os itens são atuais
+            isCurrent: true, // Por padrão, considerar que todos os itens são atuais
+            externalLink: externalLink,
+            hasInternalNavigation: hasInternalNavigation
           });
         });
       });
@@ -1765,11 +1860,13 @@
       const nameField = document.getElementById('new-meta-name');
       const activityField = document.getElementById('new-meta-activity');
       const commentField = document.getElementById('new-meta-comment');
+      const linkField = document.getElementById('new-meta-link');
       
       // Limpar campos
       nameField.value = '';
       activityField.value = '';
       commentField.value = '';
+      linkField.value = '';
       
       // Configurar contexto atual
       currentMetaContext = {
@@ -1787,13 +1884,21 @@
       const nameField = document.getElementById('new-meta-name');
       const activityField = document.getElementById('new-meta-activity');
       const commentField = document.getElementById('new-meta-comment');
+      const linkField = document.getElementById('new-meta-link');
       
       const name = nameField.value.trim();
       const activity = activityField.value.trim();
       const comment = commentField.value.trim();
+      const link = linkField.value.trim();
       
       if (!name) {
         showNotification('Por favor, forneça um nome para a meta.', 'error');
+        return;
+      }
+      
+      // Validate link if provided
+      if (link && !isValidExternalUrl(link)) {
+        showNotification('O link deve começar com http:// ou https://', 'error');
         return;
       }
       
@@ -1841,7 +1946,14 @@
       const button = document.createElement('div');
       button.className = 'quadrante';
       button.style.backgroundColor = groupColor;
-      button.innerHTML = `<div class="titulo">${name}</div>`;
+      
+      // Add link if provided
+      if (link) {
+        button.innerHTML = `<div class="titulo"><a href="${link}" target="_blank" style="color: inherit; text-decoration: none;">${name}</a></div>`;
+      } else {
+        button.innerHTML = `<div class="titulo">${name}</div>`;
+      }
+      
       btnCont.appendChild(button);
       
       if (activity || comment) {
@@ -1864,7 +1976,9 @@
         comment: comment,
         postIt: btnCont.querySelector('.post-it') || null,
         color: groupColor,
-        isCurrent: true
+        isCurrent: true,
+        externalLink: link || null,
+        hasInternalNavigation: false
       });
       
       // Se tiver atividade ou comentário, criar um passo atual
@@ -1921,6 +2035,124 @@
       
       showNotification('Nova meta adicionada com sucesso!', 'success');
     }
+    
+    // Link management functions
+    let currentLinkContext = null;
+    
+    function showLinkModal(metaKey, currentLink) {
+      const modal = document.getElementById('link-modal');
+      const titleElement = document.getElementById('link-modal-title');
+      const urlInput = document.getElementById('link-url-input');
+      
+      // Set modal title and input value
+      if (currentLink) {
+        titleElement.textContent = 'Editar Link';
+        urlInput.value = currentLink;
+      } else {
+        titleElement.textContent = 'Adicionar Link';
+        urlInput.value = '';
+      }
+      
+      // Store context
+      currentLinkContext = { metaKey: metaKey };
+      
+      // Show modal
+      modal.style.display = 'block';
+    }
+    
+    function saveLinkFromModal() {
+      const modal = document.getElementById('link-modal');
+      const urlInput = document.getElementById('link-url-input');
+      const url = urlInput.value.trim();
+      
+      if (!url) {
+        showNotification('Por favor, forneça uma URL.', 'error');
+        return;
+      }
+      
+      if (!isValidExternalUrl(url)) {
+        showNotification('A URL deve começar com http:// ou https://', 'error');
+        return;
+      }
+      
+      const { metaKey } = currentLinkContext;
+      const activity = originalActivities.get(metaKey);
+      
+      if (!activity) {
+        showNotification('Meta não encontrada.', 'error');
+        return;
+      }
+      
+      // Update the link in originalActivities
+      activity.externalLink = url;
+      
+      // Update the link in parsedDoc button
+      const titleElement = activity.button.querySelector('.titulo');
+      if (titleElement) {
+        const currentText = titleElement.textContent || titleElement.innerText;
+        
+        // Remove existing link if any
+        const existingLink = titleElement.querySelector('a');
+        if (existingLink) {
+          existingLink.remove();
+        }
+        
+        // Create new link
+        const linkElement = document.createElement('a');
+        linkElement.href = url;
+        linkElement.target = '_blank';
+        linkElement.style.color = 'inherit';
+        linkElement.style.textDecoration = 'none';
+        linkElement.textContent = currentText;
+        
+        titleElement.textContent = '';
+        titleElement.appendChild(linkElement);
+      }
+      
+      // Close modal and refresh dashboard
+      modal.style.display = 'none';
+      currentLinkContext = null;
+      unsavedChanges = true;
+      
+      // Regenerate dashboard to show updated link UI
+      generateDashboardContent();
+      
+      showNotification('Link salvo com sucesso!', 'success');
+    }
+    
+    function deleteLink(metaKey) {
+      if (!confirm('Deseja realmente excluir este link?')) {
+        return;
+      }
+      
+      const activity = originalActivities.get(metaKey);
+      
+      if (!activity) {
+        showNotification('Meta não encontrada.', 'error');
+        return;
+      }
+      
+      // Remove link from originalActivities
+      activity.externalLink = null;
+      
+      // Remove link from parsedDoc button
+      const titleElement = activity.button.querySelector('.titulo');
+      if (titleElement) {
+        const linkElement = titleElement.querySelector('a');
+        if (linkElement) {
+          const text = linkElement.textContent;
+          titleElement.textContent = text;
+        }
+      }
+      
+      unsavedChanges = true;
+      
+      // Regenerate dashboard to show updated UI
+      generateDashboardContent();
+      
+      showNotification('Link excluído com sucesso!', 'success');
+    }
+
     
     function addStepButton(metaContainer) {
       // Remover botões existentes de adicionar passo
@@ -2347,6 +2579,48 @@ function saveAll() {
           metaButton.addEventListener('dblclick', enableEditingForElement);
           
           metaContainer.appendChild(metaButton);
+          
+          // Add link management UI
+          const linkContainer = document.createElement('div');
+          linkContainer.className = 'meta-link-container';
+          
+          if (!activity.hasInternalNavigation) {
+            if (activity.externalLink) {
+              // Show link with edit/delete buttons
+              const linkAnchor = document.createElement('a');
+              linkAnchor.href = activity.externalLink;
+              linkAnchor.target = '_blank';
+              linkAnchor.className = 'meta-link';
+              linkAnchor.textContent = '🔗 Link';
+              linkAnchor.title = activity.externalLink;
+              
+              const editBtn = document.createElement('button');
+              editBtn.className = 'edit-link-btn';
+              editBtn.textContent = '✏️';
+              editBtn.title = 'Editar link';
+              editBtn.addEventListener('click', () => showLinkModal(meta, activity.externalLink));
+              
+              const deleteBtn = document.createElement('button');
+              deleteBtn.className = 'delete-link-btn';
+              deleteBtn.textContent = '🗑️';
+              deleteBtn.title = 'Excluir link';
+              deleteBtn.addEventListener('click', () => deleteLink(meta));
+              
+              linkContainer.appendChild(linkAnchor);
+              linkContainer.appendChild(editBtn);
+              linkContainer.appendChild(deleteBtn);
+            } else {
+              // Show "Add Link" button
+              const addLinkBtn = document.createElement('button');
+              addLinkBtn.className = 'add-link-btn';
+              addLinkBtn.textContent = '+ Adicionar Link';
+              addLinkBtn.addEventListener('click', () => showLinkModal(meta, null));
+              
+              linkContainer.appendChild(addLinkBtn);
+            }
+            
+            metaContainer.appendChild(linkContainer);
+          }
           
           // BUSCAR PASSOS HISTÓRICOS
           // Buscar em qualquer lugar no documento, não apenas no dashboard
@@ -2992,23 +3266,19 @@ function saveAll() {
         
         .pdf-group {
           margin-bottom: 20px;
-          page-break-before: auto;
-          page-break-inside: avoid;
-        }
-        
-        /* Regra importante: não quebrar página antes do primeiro grupo */
-        .pdf-group:first-child {
-          page-break-before: auto;
+          page-break-before: always !important;
+          page-break-inside: avoid !important;
+          page-break-after: auto;
         }
         
         .pdf-group-header {
-          page-break-after: avoid;
-          page-break-inside: avoid;
+          page-break-after: avoid !important;
+          page-break-inside: avoid !important;
         }
         
         .pdf-goal {
           margin-bottom: 15px;
-          page-break-inside: avoid;
+          page-break-inside: avoid !important;
         }
         
         .pdf-goal-title {
@@ -3017,6 +3287,7 @@ function saveAll() {
           margin-bottom: 20px;
           color: white;
           border-radius: 5px;
+          page-break-after: avoid !important;
         }
         
         .pdf-step {
@@ -3026,22 +3297,27 @@ function saveAll() {
           background: #f9f9f9;
           border-radius: 5px;
           border-left: 3px solid #4c956c;
-          page-break-inside: avoid;
+          page-break-inside: avoid !important;
+          page-break-before: auto;
+          page-break-after: auto;
         }
         
         .pdf-step-incomplete {
           background-color: #FFCCCC !important;
           border-left-color: #d83367 !important;
+          page-break-inside: avoid !important;
         }
         
         /* Estilo para o passo atual no PDF */
         .pdf-step-current {
           background-color: #f9f9f9 !important;
           border-left: 5px solid #4CAF50 !important;
+          page-break-inside: avoid !important;
         }
         
         .pdf-step-content {
           margin-bottom: 8px;
+          page-break-inside: avoid !important;
         }
         
         .pdf-step-comment {
@@ -3241,7 +3517,8 @@ function saveAll() {
         html2canvas: { 
           scale: 2, 
           useCORS: true,
-          allowTaint: true 
+          allowTaint: true,
+          letterRendering: true
         },
         jsPDF: { 
           unit: 'mm', 
@@ -3250,7 +3527,9 @@ function saveAll() {
           compress: true
         },
         pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'] 
+          mode: ['avoid-all', 'css', 'legacy'],
+          before: '.pdf-group',
+          avoid: ['.pdf-step', '.pdf-goal', '.pdf-step-content']
         }
       };
       
@@ -3356,6 +3635,19 @@ function saveAll() {
     };
     
     document.getElementById('save-meta-btn').onclick = saveNewMeta;
+
+    // Event listeners for link modal
+    document.getElementById('close-link-modal').onclick = () => {
+      document.getElementById('link-modal').style.display = 'none';
+      currentLinkContext = null;
+    };
+    
+    document.getElementById('cancel-link-btn').onclick = () => {
+      document.getElementById('link-modal').style.display = 'none';
+      currentLinkContext = null;
+    };
+    
+    document.getElementById('save-link-btn').onclick = saveLinkFromModal;
 
     // Event listeners para o modal de PDF
     document.getElementById('close-pdf-modal').onclick = () => {
