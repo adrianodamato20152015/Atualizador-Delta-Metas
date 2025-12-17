@@ -1,0 +1,23 @@
+[
+  {
+    "id": "META-EXEMPLO-001",
+    "titulo": "Capacitação da Equipe",
+    "descricao": "Treinar toda equipe em novas metodologias de gestão",
+    "responsavel": "Coordenação Geral",
+    "prazo": "2026-06-30",
+    "valor_alvo": 100.0,
+    "valor_atual": 25.0,
+    "unidade": "%",
+    "categoria": "Desenvolvimento",
+    "progresso": 25.0,
+    "status": "Iniciada",
+    "historico": [
+      {
+        "data": "2025-12-17T03:30:34.348911",
+        "valor": 25.0,
+        "observacao": "Primeira fase de capacitação concluída"
+      }
+    ],
+    "data_criacao": "2025-12-17T03:30:34.348671"
+  }
+]

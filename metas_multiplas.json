@@ -1,0 +1,62 @@
+[
+  {
+    "id": "META-A1",
+    "titulo": "Análise de Impacto Ambiental",
+    "descricao": "Descrição da Análise de Impacto Ambiental",
+    "responsavel": "Equipe Ambiental",
+    "prazo": "2026-12-31",
+    "valor_alvo": 50.0,
+    "valor_atual": 0.0,
+    "unidade": "%",
+    "categoria": "Ambiental",
+    "progresso": 0.0,
+    "status": "Em Andamento",
+    "historico": [],
+    "data_criacao": "2025-12-17T03:30:34.472538"
+  },
+  {
+    "id": "META-A2",
+    "titulo": "Recuperação de Áreas Degradadas",
+    "descricao": "Descrição da Recuperação de Áreas Degradadas",
+    "responsavel": "Equipe Ambiental",
+    "prazo": "2026-12-31",
+    "valor_alvo": 10.0,
+    "valor_atual": 0.0,
+    "unidade": "%",
+    "categoria": "Ambiental",
+    "progresso": 0.0,
+    "status": "Em Andamento",
+    "historico": [],
+    "data_criacao": "2025-12-17T03:30:34.472642"
+  },
+  {
+    "id": "META-E1",
+    "titulo": "Workshop Comunitário",
+    "descricao": "Descrição da Workshop Comunitário",
+    "responsavel": "Equipe Educação",
+    "prazo": "2026-12-31",
+    "valor_alvo": 5.0,
+    "valor_atual": 0.0,
+    "unidade": "%",
+    "categoria": "Educação",
+    "progresso": 0.0,
+    "status": "Em Andamento",
+    "historico": [],
+    "data_criacao": "2025-12-17T03:30:34.472785"
+  },
+  {
+    "id": "META-E2",
+    "titulo": "Material Educativo",
+    "descricao": "Descrição da Material Educativo",
+    "responsavel": "Equipe Educação",
+    "prazo": "2026-12-31",
+    "valor_alvo": 1000.0,
+    "valor_atual": 0.0,
+    "unidade": "%",
+    "categoria": "Educação",
+    "progresso": 0.0,
+    "status": "Em Andamento",
+    "historico": [],
+    "data_criacao": "2025-12-17T03:30:34.473080"
+  }
+]
